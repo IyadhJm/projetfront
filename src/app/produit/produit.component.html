@@ -1,0 +1,188 @@
+<div class="p-grid" >
+    <div class="p-col-12">
+                 <p-toast></p-toast>
+
+    <div class="card">
+                  <p-toolbar styleClass="p-mb-4">
+           <ng-template pTemplate="left">
+               <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success p-mr-2" (click)="openNew()"></button>
+              
+           </ng-template>
+   
+           <ng-template pTemplate="right">
+            <button pButton pRipple  chooseLabel="Import" icon="pi pi-file-excel" class="p-button-rounded p-mr-2" (click)="downlodCsvFil()"></button>
+            <button pButton pRipple  chooseLabel="Import" icon="pi pi-file-pdf" class="p-button-rounded p-mr-2 " (click)="makePdf()"></button>
+
+           </ng-template>
+                  </p-toolbar> 
+  
+           <p-table  #dt [value]="produits"  [rows]="10" [paginator]="true" [globalFilterFields]="['categoriesId']"
+         [rowHover]="true" dataKey="id"
+             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [showCurrentPageReport]="true">
+   
+   
+           <ng-template pTemplate="caption">
+   
+               <div class="p-d-flex p-flex-column p-flex-md-row p-jc-md-between table-header">
+   
+                   <h5 class="p-m-0">Produits</h5>
+                   <div class="search-input-wrapper">
+                   <span class="p-input-icon-left">
+                   <p-button icon="pi pi-search"></p-button>
+                   <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Search..." />
+                   </span>
+   </div>
+               </div>
+           </ng-template>
+           <ng-template pTemplate="header">
+               <tr>
+   
+                   <th style="width: 3rem">
+                       <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                   </th>
+                   <th  pSortableColumn="categoriesId">categories<p-sortIcon field="categoriesId"></p-sortIcon></th>
+                   
+                   <th  pSortableColumn="name">Name<p-sortIcon field="name"></p-sortIcon></th>
+                  
+                   <th  pSortableColumn="qt">qt<p-sortIcon field="qt"></p-sortIcon></th>
+                   <th  pSortableColumn="dateCreation">date creation<p-sortIcon field="dateCreation"></p-sortIcon></th>
+                   <th  pSortableColumn=" dateModif">date modif<p-sortIcon field=" dateModif"></p-sortIcon></th>
+                   <th  pSortableColumn=" disponible">disponible<p-sortIcon field=" disponible"></p-sortIcon></th>
+                  
+                   <th>options</th>
+                  
+               </tr>
+           </ng-template>
+   
+   
+           <ng-template pTemplate="body" let-produit>
+               <tr>
+                   <td>
+                       <p-tableCheckbox [value]="produit"></p-tableCheckbox>
+                   </td>
+                 
+     
+       <td> {{produit.categoriesId}}</td>
+       <td> {{produit.name}}</td>
+       <td> {{produit.qt}}</td>
+       <td> {{produit.dateCreation}}</td>
+       <td> {{produit.dateModif}}</td>
+       <td> {{produit.disponible}}</td>
+     
+                  
+                   <td>
+                       <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success p-mr-2"  (click)="editProduit(produit)"></button>
+                       <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteData(produit.id)"></button>
+                   </td>
+                </tr>
+           </ng-template>
+           <ng-template pTemplate="summary">
+            <div class="p-d-flex p-ai-center p-jc-between">
+                In total there are {{produits ? produits.length : 0 }} Produits.
+            </div>
+        </ng-template>
+       </p-table>
+   
+    <p-dialog [(visible)]="produitDialog" [style]="{width: '80%'}" header="Ajout Un Produit " [modal]="true" styleClass="p-fluid">
+       <ng-template pTemplate="content" (ngsubmit)="insertData()">
+              
+        <div class="p-field">
+            <label for="categoriesId">categories</label>
+                <p-dropdown [options]="categories" [(ngModel)]="selectedCategorie"  [(ngModel)]="produit.categoriesId" optionLabel="id" (onChange)="onCategorieChange($event)" optionValue="id"></p-dropdown> 
+     
+        </div>
+                
+        <div class="p-field">
+            <label for="name">Name</label>
+            <input type="text" pInputText id="name" [(ngModel)]="produit.name" required autofocus />
+            <small class="p-error" *ngIf="submitted && !produit.name">Name est Obligatoire.</small>
+        </div>
+       
+         
+        <div class="p-field">
+            <label for="qt">qt</label>
+        
+            <p-inputNumber  [(ngModel)]="produit.qt" ></p-inputNumber>
+            <small class="p-error" *ngIf="submitted && !produit.qt">qt est Obligatoire.</small>
+        </div>
+        
+        <label>Disponible</label>
+        <div *ngFor="let disponible of dispo" class="p-field-checkbox">
+	<p-radioButton [inputId]="disponible.key" name="disponible" [value]="disponible" [(ngModel)]="selectedCategory"
+		[disabled]="disponible.key === 'R'"></p-radioButton>
+	<label [for]="disponible.key">{{disponible.name}}</label>
+</div>
+       </ng-template>
+   
+       
+   
+       <ng-template pTemplate="footer">
+           <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+           <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text"(click)="insertData()"></button>
+      
+       </ng-template>
+   
+       </p-dialog>
+   
+       <p-dialog [(visible)]="updateproduitDialog" [style]="{width: '450px'}" header="Modifier Une Commande" [modal]="true" styleClass="p-fluid">
+           <ng-template pTemplate="content" (ngsubmit)="updateData()">
+              
+           
+           
+            <div class="p-field">
+                <label for="categoriesId">categories</label>
+                <input id="disabled-input" type="text" pInputText [disabled]="disabled" [(ngModel)]="produit.categoriesId" />
+            </div>
+
+            
+            <div class="p-field">
+                <label for="name">Name</label>
+                <input type="text" pInputText id="name" [(ngModel)]="produit.name" required autofocus />
+                <small class="p-error" *ngIf="submitted && !produit.name">Name est Obligatoire.</small>
+            </div>
+           
+            <div class="p-field">
+                <label for="qt">qt</label>
+                <input type="text" pInputText id="qt" [(ngModel)]="produit.qt" required autofocus />
+                <small class="p-error" *ngIf="submitted && !produit.qt">qt est Obligatoire.</small>
+            </div>
+            <div class="p-field">
+                <label for="dateCreation">dateCreation</label>
+                <input type="date" pInputText id="dateCreation" [(ngModel)]="produit.dateCreation" required autofocus />
+                <small class="p-error" *ngIf="submitted && !produit.dateCreation">date Produit est Obligatoire.</small>
+            </div>
+            <div class="p-field">
+                <label for="dateModif">dateModif</label>
+                <input type="date" pInputText id="dateModif" [(ngModel)]="produit.dateModif" required autofocus />
+                <small class="p-error" *ngIf="submitted && !produit.dateModif">date modif est Obligatoire.</small>
+            </div>
+            <div class="p-field">
+                <label for="disponible">disponible</label>
+                <input type="text" pInputText id="disponible" [(ngModel)]="produit.disponible" required autofocus />
+                <small class="p-error" *ngIf="submitted && !produit.disponible">disponible est Obligatoire.</small>
+            </div>
+              
+       
+                 
+       
+       
+             
+              
+                 
+       
+           </ng-template>
+       
+           
+       
+           <ng-template pTemplate="footer">
+               <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+               <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="updateData()"></button>
+          
+           </ng-template>
+       
+       </p-dialog>
+       <p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+   </div>
+   
+   
+   </div>
